@@ -1,11 +1,17 @@
-genericJMXAPI collector (prototype at this stage)
+Boundary-Generic-JMX-Collector
+==============================
 
-Extract the zip file in to a clean directory
+Generic JMX MBean collector that uses the Boundary API to create metrics and publish them.
+
+This java application reads a configuration file the name of which is passed as a parameter. The configuration file is a JSON structure that defines the JMX connection, the MBean attributes to collect and also the Boundary metric definitions. It requires a Boundary api string <email:api-key> to be specified. A Boundary premium account is required.
+
+
+Instructions for use:
 
 Edit the configure.json file - you will need your premium email and api.key. You will need all the JMX information as well. 
 	The original configure.json file contains field descriptions. Hopefully this will be sufficient.
 
-Go to a terminal window and cd to the directory where genericJMXAPI.jar was extracted     
+Go to a terminal window and cd to the directory where genericJMXAPI.jar and the configuration file are.     
 	
 Run the collector with the following command:
 
