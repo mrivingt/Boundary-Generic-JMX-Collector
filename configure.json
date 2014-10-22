@@ -1,0 +1,55 @@
+{"_comment" : "http://premium-documentation.boundary.com/v1/post/measurements is a good place to look to understand what happens on the Boundary end",
+ 
+ "stdout" : "Write the log to stdout as well as to log file. Very useful when testing.",
+ "stdout" : "yes",
+
+ "logfile" : "Name of log file",
+ "logfile" : "genericJMXAPI.log"
+
+ "auth_string" : "The Boundary login email and api key separated by a colon (:) email:api_key. This is used to authenticate to Boundary when creating metrics etc.",
+ "auth_string":"<email:api_key>",
+
+ "host" : "The hostame or IP address of the JMX server",
+ "host":"127.0.0.1"
+
+ "port" : "The port number of the JMX server",
+ "port":"7199",
+
+ "user" : "The user name if you need to authenticate to the JMX server",
+ "user":"<username>",
+
+ "password" : "goes with the user name",
+ "password":"<password>",
+
+ "interval" : "The interval in seconds between polls",
+ "interval" : "10",
+
+ "metrics" : "An arrary of metrics defining the MBean, the MBean attribute, the metric type (standard, delta or percent) and all the Boundary metric definition required",
+ "metrics":
+  [
+    {  
+ 	"mbean":"org.apache.cassandra.internal:type=FlushWriter",
+ 	"attribute" : "PendingTasks",
+ 	"boundary_metric_name" : "CAS_FW_PT",
+ 	"metric_type" : "standard",
+ 	"metric_displayName" : "Cassandra FlushWriter pending tasks",
+ 	"metric_displayNameShort" : "Cassandra FW PT",
+ 	"metric_description" : "Cassandra Flush Writer number of pending tasks",
+ 	"metric_unit" : "number",
+ 	"metric_defaultAggregate" : "AVG",
+ 	"metric_defaultResolutionMS" : "10000"
+    },
+    {  
+     "mbean":"org.apache.cassandra.internal:type=FlushWriter",
+	"attribute":"CompletedTasks",
+	"boundary_metric_name":"CAS_FW_CT",
+	"metric_type" : "standard",
+	"metric_displayName" : "Cassandra FlushWriter completed tasks",
+	"metric_displayNameShort" : "Cassandra FW CT",
+	"metric_description" : "Cassandra Flush Writer number of completed tasks",
+	"metric_unit" : "number",
+	"metric_defaultAggregate" : "AVG",
+	"metric_defaultResolutionMS" : "10000"
+    }
+  ]
+}
