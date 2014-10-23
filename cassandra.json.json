@@ -1,0 +1,161 @@
+{"_comment" : "http://premium-documentation.boundary.com/v1/post/measurements is a good place to look to understand what happens on the Boundary end",
+ 
+ "stdout" : "Write the log to stdout as well as to log file. Very useful when testing.",
+ "stdout" : "yes",
+
+ "logfile" : "Name of log file",
+ "logfile" : "genericJMXAPI.log"
+
+ "auth_string" : "The Boundary login email and api key separated by a colon (:) email:api_key. This is used to authenticate to Boundary when creating metrics etc.",
+ "auth_string":"<email:api_key>",
+
+ "host" : "The hostame or IP address of the JMX server",
+ "host":"127.0.0.1"
+
+ "port" : "The port number of the JMX server",
+ "port":"7199",
+
+ "user" : "The user name if you need to authenticate to the JMX server",
+ "user":"mark",
+
+ "password" : "goes with the user name",
+ "password":"secret",
+
+ "interval" : "The interval in seconds between polls",
+ "interval" : "10",
+
+ "metrics" : "An arrary of metrics defining the MBean, the MBean attribute, the metric type (standard, delta or percent) and all the Boundary metric definition required",
+ "metrics":
+  [
+
+    {  
+ 	"mbean":"org.apache.cassandra.internal:type=AntiEntropyStage",
+ 	"attribute" : "CurrentlyBlockedTasks",
+ 	"boundary_metric_name" : "CAS_INT_AES_CBT",
+ 	"metric_type" : "standard",
+ 	"metric_displayName" : "Cassandra Internal Anti Entropy Stage Currently Blocked Tasks",
+ 	"metric_displayNameShort" : "Cassandra Internal AES CBT",
+ 	"metric_description" : "Cassandra Anti Entropy current number of blocked tasks",
+ 	"metric_unit" : "number",
+ 	"metric_defaultAggregate" : "AVG",
+ 	"metric_defaultResolutionMS" : "10000"
+    },
+	{  
+ 	"mbean":"org.apache.cassandra.internal:type=CacheCleanupExecutor",
+ 	"attribute" : "CurrentlyBlockedTasks",
+ 	"boundary_metric_name" : "CAS_INT_CCE_CBT",
+ 	"metric_type" : "standard",
+ 	"metric_displayName" : "Cassandra Cache Cleanup Executor Currently Blocked Tasks",
+ 	"metric_displayNameShort" : "Cassandra Internal CCE CBT",
+ 	"metric_description" : "Cassandra Cache Cleanup Executor current number of blocked tasks",
+ 	"metric_unit" : "number",
+ 	"metric_defaultAggregate" : "AVG",
+ 	"metric_defaultResolutionMS" : "10000"
+    },
+	{  
+ 	"mbean":"org.apache.cassandra.internal:type=CompactionExecutor",
+ 	"attribute" : "CurrentlyBlockedTasks",
+ 	"boundary_metric_name" : "CAS_INT_COE_CBT",
+ 	"metric_type" : "standard",
+ 	"metric_displayName" : "Cassandra Compaction Executor Currently Blocked Tasks",
+ 	"metric_displayNameShort" : "Cassandra Internal COM CBT",
+ 	"metric_description" : "Cassandra Compaction Executor current number of blocked tasks",
+ 	"metric_unit" : "number",
+ 	"metric_defaultAggregate" : "AVG",
+ 	"metric_defaultResolutionMS" : "10000"
+    },
+	{  
+ 	"mbean":"org.apache.cassandra.internal:type=FlushWriter",
+ 	"attribute" : "CurrentlyBlockedTasks",
+ 	"boundary_metric_name" : "CAS_INT_FW_CBT",
+ 	"metric_type" : "standard",
+ 	"metric_displayName" : "Cassandra Flush Writer Currently Blocked Tasks",
+ 	"metric_displayNameShort" : "Cassandra Internal FW CBT",
+ 	"metric_description" : "Cassandra Flush Writer current number of blocked tasks",
+ 	"metric_unit" : "number",
+ 	"metric_defaultAggregate" : "AVG",
+ 	"metric_defaultResolutionMS" : "10000"
+    },
+
+
+
+    {  
+ 	"mbean":"org.apache.cassandra.metrics:type=Cache,scope=KeyCache,name=HitRate",
+ 	"attribute" : "Value",
+ 	"boundary_metric_name" : "CAS_KEYCACHE_HR_P",
+ 	"metric_type" : "percent",
+ 	"metric_displayName" : "Cassandra Key Cache hit rate percent",
+ 	"metric_displayNameShort" : "Cassandra KC HR P",
+ 	"metric_description" : "Cassandra Key Cache hit rate as a percentage",
+ 	"metric_unit" : "percent",
+ 	"metric_defaultAggregate" : "AVG",
+ 	"metric_defaultResolutionMS" : "10000"
+    },
+
+    {  
+ 	"mbean":"org.apache.cassandra.metrics:type=Compaction,name=BytesCompacted",
+ 	"attribute" : "Count",
+ 	"boundary_metric_name" : "CAS_COMPACT_BC",
+ 	"metric_type" : "standard",
+ 	"metric_displayName" : "Cassandra compaction bytes compacted",
+ 	"metric_displayNameShort" : "Cassandra COM BC",
+ 	"metric_description" : "Cassandra compaction number of bytes compacted (total)",
+ 	"metric_unit" : "number",
+ 	"metric_defaultAggregate" : "AVG",
+ 	"metric_defaultResolutionMS" : "10000"
+    },
+
+    {  
+ 	"mbean":"org.apache.cassandra.metrics:type=Compaction,name=BytesCompacted",
+ 	"attribute" : "Count",
+ 	"boundary_metric_name" : "CAS_COMPACT_BC_D",
+ 	"metric_type" : "delta",
+ 	"metric_displayName" : "Cassandra compaction bytes compacted (delta)",
+ 	"metric_displayNameShort" : "Cassandra COM BC D",
+ 	"metric_description" : "Cassandra compaction number of bytes compacted (delta)",
+ 	"metric_unit" : "number",
+ 	"metric_defaultAggregate" : "AVG",
+ 	"metric_defaultResolutionMS" : "10000"
+    },
+
+    {  
+ 	"mbean":"org.apache.cassandra.internal:type=FlushWriter",
+ 	"attribute" : "PendingTasks",
+ 	"boundary_metric_name" : "CAS_FW_PT",
+ 	"metric_type" : "standard",
+ 	"metric_displayName" : "Cassandra FlushWriter pending tasks",
+ 	"metric_displayNameShort" : "Cassandra FW PT",
+ 	"metric_description" : "Cassandra Flush Writer number of pending tasks",
+ 	"metric_unit" : "number",
+ 	"metric_defaultAggregate" : "AVG",
+ 	"metric_defaultResolutionMS" : "10000"
+    },
+
+    {  
+     "mbean":"org.apache.cassandra.internal:type=FlushWriter",
+	"attribute":"CompletedTasks",
+	"boundary_metric_name":"CAS_FW_CT",
+	"metric_type" : "standard",
+	"metric_displayName" : "Cassandra FlushWriter completed tasks",
+	"metric_displayNameShort" : "Cassandra FW CT",
+	"metric_description" : "Cassandra Flush Writer number of completed tasks",
+	"metric_unit" : "number",
+	"metric_defaultAggregate" : "AVG",
+	"metric_defaultResolutionMS" : "10000"
+    },
+
+    {  
+     "mbean":"org.apache.cassandra.metrics:type=Cache,scope=KeyCache,name=Requests",
+	"attribute":"MeanRate",
+	"boundary_metric_name":"CAS_KEY_CACHE_REQS",
+	"metric_type" : "standard",
+	"metric_displayName" : "Cassandra Key Cache requests",
+	"metric_displayNameShort" : "Cassandra KC REQS",
+	"metric_description" : "Cassandra Key cache requests",
+	"metric_unit" : "number",
+	"metric_defaultAggregate" : "AVG",
+	"metric_defaultResolutionMS" : "10000"
+    }
+
+  ]
+}
