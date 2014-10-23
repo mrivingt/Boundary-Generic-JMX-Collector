@@ -97,10 +97,7 @@ public class genericJMXAPI {
 	 		  System.exit(2);
 	 	}
 	 	
-	 	
-	 	if (!authString.contains("@") || !authString.contains("api.") ) {
-	 		log("@@@@@ Warning - auth_string from configuration file doesn't look right: " + authString);
-	 	}
+	 	if (!authString.contains("@") || !authString.contains("api.")) {log("@@@@@ Warning - auth_string from configuration file doesn't look right: " + authString);}
 		
 	 	byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
 	  	String authStringEnc = new String(authEncBytes);
@@ -113,18 +110,15 @@ public class genericJMXAPI {
 	    
 	    String user = (String) configuration.get("user");
  	    String password = (String) configuration.get("password");
-		    
-	    
+    
 		// Now we have enough data to attempt the JMX connection
-		  
 		log("Attempting connection to: " + host + " port: "+ port);
-	      
-		JMXServiceURL serviceURL = new JMXServiceURL(
-			                "service:jmx:rmi:///jndi/rmi://" + host + ":" + port + "/jmxrmi");
+   
+		JMXServiceURL serviceURL = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + host + ":" + port + "/jmxrmi");
 
 		// We may or may not have to connect with user and password
 		// If the user and password keys were provided then we assume that we have to authenticate
-		//
+		
 		JMXConnector jmxc = null;
 		if (user == null) {
 			jmxc = JMXConnectorFactory.connect(serviceURL); 
@@ -166,56 +160,62 @@ public class genericJMXAPI {
 
 		ArrayList<Metric> mbeans = new ArrayList<Metric>();
 		
-		  String endpoint = "https://premium-api.boundary.com/v1/metrics/";
-		  log("Endpoint " + endpoint);
+		String endpoint = "https://premium-api.boundary.com/v1/metrics/";
+		log("Endpoint " + endpoint);
     
 		JSONArray metrics = (JSONArray) configuration.get("metrics");
-		  for (Object o : metrics)
+		for (Object o : metrics)
 		  {
 		    JSONObject config = (JSONObject) o;
 		    
-		 // Extract all the attributes and store them in the mbeans collection after creating the metric in Boundary
-		 // This is a lot of processing that can fail for many reasons
+            // Extract all the attributes and store them in the mbeans collection after creating the metric in Boundary
+            // This is a lot of processing that can fail for many reasons
 		    defineMetric(config, cfg, mbsc, mbeans, endpoint , authStringEnc);    
-	    
-		  }
+		}
 	
-		 // This is where we do the forever loop of the plugin processing
+		// This is where we do the forever loop of the processing
  
-		  String url = "https://premium-api.boundary.com/v1/measurements";
+		String url = "https://premium-api.boundary.com/v1/measurements";
 		
-	      while (true) {   // Forever
-	  
+	    while (true) {   // Forever
+	     JSONArray metricsArray = new JSONArray();
+         long timethen = System.currentTimeMillis();
+         for(Object object : mbeans) {
+              Metric mbean = (Metric) object;
+              
+  		      if (mbean.metric_type.equals("delta")) {
+  		       	if (!mbean.setDeltaValue()) {
+  		       		continue;
+  		       	}   // for delta metrics there is no value on the first request
+  		      }
+  		      else {
+  		    	  mbean.setCurrentValue();
+  		      }
+  		      
+	    	  JSONArray metricPayload = new JSONArray();
+   			  metricPayload.add(source);
+  			  metricPayload.add(mbean.boundary_metric_name);
+  	 		  metricPayload.add(mbean.displayValue);
+  			  metricPayload.add(String.valueOf(System.currentTimeMillis()));
+  			  metricsArray.add(metricPayload);
+	     }
+   
+		  publishMetric(metricsArray, url, authStringEnc);  
+          long timenow = System.currentTimeMillis();	
+          long elapsed = timenow - timethen;
+          log("Time to get all mbeans and publish them was: " + elapsed + " ms");
+          
+          
+          long sleepTime = 1000 * Integer.valueOf(interval) - elapsed - 1;
+          
+          if (sleepTime > 0) {
+        	  Thread.sleep(sleepTime);
+          }
+          
+	     }
 
-		     JSONArray metricsArray = new JSONArray();
-		      
-             long timethen = System.currentTimeMillis();
-             for(Object object : mbeans) {
-		  		 Metric mbean = (Metric) object;
-  		         if (mbean.metric_type.equals("delta")) {
-  		        	if (!mbean.setDeltaValue()) {continue;}   // for delta metrics there is no value on the first request
-  		         }
-  		         else {mbean.setCurrentValue();}
-  		    	 JSONArray metricPayload = new JSONArray();
-   			      metricPayload.add(source);
-  			  	  metricPayload.add(mbean.boundary_metric_name);
-  	 		  	  metricPayload.add(mbean.displayValue);
-  			  	  metricPayload.add(String.valueOf(System.currentTimeMillis()));
-  			  	metricsArray.add(metricPayload);
-	
-    		}
-	       
-	        
-		    publishMetric(metricsArray, url, authStringEnc);  // This is for Boundary Meter
-            long timenow = System.currentTimeMillis();	
-            long elapsed = timenow - timethen;
-            log("Time to get all mbeans and publish them was: " + elapsed + " ms");
-
- 	        Thread.sleep(1000 * Integer.valueOf(interval) - elapsed -1);    
-	      }
-
-		// never ends         
-	   }
+       
+   }   
 		    
   private static void error(String msg) throws IOException {
 	echo(msg);
@@ -309,9 +309,7 @@ private static void defineMetric(JSONObject config, genericJMXAPI cfg, MBeanServ
 
    	  String urlParameters = null;
   	  int responseCode = 0;
-  	  
-
-  	      	  
+        	  
       String url = endpoint + boundary_metric_name;
       log("url: " + url);
   	  
@@ -329,27 +327,27 @@ private static void defineMetric(JSONObject config, genericJMXAPI cfg, MBeanServ
   	  con.setRequestProperty("Connection", "keep-alive");
   	  con.setDoOutput(true);
 
-  	  		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+  	  DataOutputStream wr = new DataOutputStream(con.getOutputStream());
    	   	
-  	  		urlParameters  = metricDefinition.toString();
-    		log("urlParameters: " + urlParameters);
+      urlParameters  = metricDefinition.toString();
+      log("urlParameters: " + urlParameters);
    
-	  		// Send request
-	  		 wr.writeBytes(urlParameters);
-	  		 wr.flush();
+	  // Send request
+	  wr.writeBytes(urlParameters);
+	  wr.flush();
 	  	
-	  		 responseCode = con.getResponseCode();
-	  		 log("Response Code : " + responseCode);
+	  responseCode = con.getResponseCode();
+	  log("Response Code : " + responseCode);
 	  		 
-	  		 wr.close();
+	  wr.close();
   	    
-  	    if (responseCode != 200 ) {
-  	    	log("Something went wrong creating the metric: " + responseCode);
+  	  if (responseCode != 200 ) {
+  	   	log("Something went wrong creating the metric: " + responseCode);
   	    	System.exit(3);
-  	    }
+  	   }
     
-	    // store the mbeans definitions away and store the MBean server connection with them
-	    mbeans.add( cfg.new Metric(mbsc, mbean_name, attribute, boundary_metric_name, metric_type));  
+	  // store the mbeans definitions away and store the MBean server connection with them
+	  mbeans.add( cfg.new Metric(mbsc, mbean_name, attribute, boundary_metric_name, metric_type));  
   
 }
   
@@ -357,14 +355,16 @@ private static void defineMetric(JSONObject config, genericJMXAPI cfg, MBeanServ
 
 	  logcount++;
 	  long millis = System.currentTimeMillis() ;
-	  
 	  BufferedOutputStream bout = null;
 	  boolean appendflag = true;
+	  
 	  if (logcount%1000 == 0) {appendflag = false;}
-      bout = new BufferedOutputStream( new FileOutputStream(Logfile,appendflag) );
-	  line = new Date(millis) + " " + millis + " " + logcount + " " 
-			  + line + System.getProperty("line.separator");
+
+	  bout = new BufferedOutputStream( new FileOutputStream(Logfile,appendflag) );
+	  line = new Date(millis) + " " + millis + " " + logcount + " " + line + System.getProperty("line.separator");
+
 	  if (Stdout.toLowerCase().equals("yes"))  {echo(line);}
+
 	  bout.write(line.getBytes());
 	  bout.close();
    
@@ -383,15 +383,14 @@ private static void defineMetric(JSONObject config, genericJMXAPI cfg, MBeanServ
 		MBeanServerConnection mbsc;
 		String type; // as in int, long, double etc.
 		
-		Metric(MBeanServerConnection mbsc, String mbean_name, String attribute, 
-				String boundary_metric_name, String metric_type) {
-			this.mbean_name = mbean_name;
-			this.attribute = attribute;
-			this.boundary_metric_name = boundary_metric_name;
-			this.metric_type = metric_type;
-			this.firstTime = true;
-			this.mbsc = mbsc;
-			this.type = null;
+		Metric(MBeanServerConnection mbsc, String mbean_name, String attribute, String boundary_metric_name, String metric_type) {
+		 this.mbean_name = mbean_name;
+		 this.attribute = attribute;
+		 this.boundary_metric_name = boundary_metric_name;
+		 this.metric_type = metric_type;
+		 this.firstTime = true;
+		 this.mbsc = mbsc;
+		 this.type = null;
 		}
 		
 		void storeLastValue() {
@@ -415,29 +414,30 @@ private static void defineMetric(JSONObject config, genericJMXAPI cfg, MBeanServ
 		void setCurrentValue() throws MalformedObjectNameException, IOException, AttributeNotFoundException, InstanceNotFoundException, MBeanException, ReflectionException, IntrospectionException {
 		   	ObjectName myMbeanName = new ObjectName(mbean_name);
 	       	
-	       	Set<ObjectInstance> mbeans  = this.mbsc.queryMBeans(myMbeanName,null);    // This should only return 1 instance
+	   	
+	       	Set<ObjectInstance> mbeans  = mbsc.queryMBeans(myMbeanName,null);    // This should only return 1 instance
 	       	if (!mbeans.isEmpty()) {
 	  
 		   	 for (ObjectInstance name : mbeans) {
 		   		 
 		   		 
-		   		if (this.type == null) { 
+		   		if (type == null) { 
 		   			log("Check type of " + mbean_name + " " + attribute);
-		   			MBeanInfo beano = this.mbsc.getMBeanInfo(name.getObjectName());
+		   			MBeanInfo beano = mbsc.getMBeanInfo(name.getObjectName());
 		   			MBeanAttributeInfo[] infos = beano.getAttributes();
 		   			   		
 		   			for(MBeanAttributeInfo info : infos) {
 			   		    if(info.getName().equals(attribute)) {
 			   		        
-			   		        this.type = info.getType().toString();
+			   		        type = info.getType().toString();
 
 			   		        
-			   		        if (this.type.equals("int") || this.type.equals("long") || this.type.equals("java.lang.Object") || this.type.equals("double")
-			   		        		|| this.type.equals("float")) {
-				   		        log(attribute + " is type: " + this.type) ;	
+			   		        if (type.equals("int") || type.equals("long") || type.equals("java.lang.Object") || type.equals("double")
+			   		        		|| type.equals("float")) {
+				   		        log(attribute + " is type: " + type) ;	
 			   		        }
 			   		        else {
-				   		        log("@@@@@ " + attribute + " is type: " + this.type + " but we do not know what to do with this type.") ;
+				   		        log("@@@@@ " + attribute + " is type: " + type + " but we do not know what to do with this type.") ;
 			   		        }
 			   		        break;
 			   		    }
@@ -445,18 +445,18 @@ private static void defineMetric(JSONObject config, genericJMXAPI cfg, MBeanServ
 		   		}
 		   		
 		   		
-		   		switch (this.type) {
-			   		case "int" : currentValue = (int) this.mbsc.getAttribute( name.getObjectName(), attribute);
+		   		switch (type) {
+			   		case "int" : currentValue = (int) mbsc.getAttribute( name.getObjectName(), attribute);
 			   			break;
-			   		case "long" : currentValue = (long) this.mbsc.getAttribute( name.getObjectName(), attribute);
+			   		case "long" : currentValue = (long) mbsc.getAttribute( name.getObjectName(), attribute);
 		   				break;
-			   		case "double" : currentValue = (double) this.mbsc.getAttribute( name.getObjectName(), attribute);
+			   		case "double" : currentValue = (double) mbsc.getAttribute( name.getObjectName(), attribute);
 	   					break;
-			   		case "float" : currentValue = (float) this.mbsc.getAttribute( name.getObjectName(), attribute);
+			   		case "float" : currentValue = (float) mbsc.getAttribute( name.getObjectName(), attribute);
    						break;
-			   		case "java.lang.Object" : currentValue = (double) this.mbsc.getAttribute( name.getObjectName(), attribute);
+			   		case "java.lang.Object" : currentValue = (double) mbsc.getAttribute( name.getObjectName(), attribute);
 		   				break;
-		   			default: log ("@@@@@ Unknown type: " + this.type + " - unable to get attribute: " + attribute);	
+		   			default: log ("@@@@@ Unknown type: " + type + " - unable to get attribute: " + attribute);	
 		   		}
 
 	
