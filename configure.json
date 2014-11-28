@@ -7,7 +7,7 @@
  "logfile" : "../genericJMXAPI.log",
 
  "auth_string" : "The Boundary login email and api key separated by a colon (:) email:api_key",
- "auth_string":"mark.rivington@boundary.com:api.0fa9067322-2186",
+ 
 
  "host" : "The hostame or IP address of the JMX server",
  "host":"127.0.0.1"
