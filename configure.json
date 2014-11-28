@@ -40,6 +40,20 @@
  	"metric_defaultAggregate" : "AVG",
  	"metric_defaultResolutionMS" : "10000"
     },
+
+    {  
+ 	"mbean":"Catalina:type=GlobalRequestProcessor,name=\"http-apr-8080\"",
+ 	"attribute" : "requestCount",
+ 	"boundary_metric_name" : "MR_TOM_8080_RC",
+ 	"metric_type" : "standard",
+ 	"metric_displayName" : "Tomcat 8080 request count",
+ 	"metric_displayNameShort" : "Tomcat 8080 RC",
+ 	"metric_description" : "Tomcat Global Processor 8080 Request Count",
+ 	"metric_unit" : "number",
+ 	"metric_defaultAggregate" : "AVG",
+ 	"metric_defaultResolutionMS" : "10000"
+    },
+
 {  
  	"mbean":"java.lang:type=Memory",
  	"attribute" : "HeapMemoryUsage",
