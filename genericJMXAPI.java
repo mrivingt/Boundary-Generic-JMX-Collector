@@ -33,6 +33,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
+import javax.management.openmbean.CompositeDataSupport;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
@@ -291,11 +292,14 @@ public class genericJMXAPI {
 
         String mbean_name = (String) config.get("mbean");
         mbean_name = mbean_name.replace("\\", ""); 					// get rid of escape
-        log("mbean_name: " + mbean_name);
+        //log("mbean_name: " + mbean_name);
         
         String attribute = (String) config.get("attribute");
         attribute = attribute.replace("\\", ""); 					// get rid of escape
-        log("attribute: " + attribute);
+        //log("attribute: " + attribute);
+      
+        String key = (String) config.get("key");
+        //log("key: " + key);
         
         String metric_type = (String) config.get("metric_type");
 
@@ -378,7 +382,7 @@ public class genericJMXAPI {
 
         // store the mbeans definitions away and store the MBean server
         // connection with them
-        mbeans.add(cfg.new Metric(mbsc, mbean_name, attribute,
+        mbeans.add(cfg.new Metric(mbsc, mbean_name, attribute, key,
                                   boundary_metric_name, metric_type));
 
     }
@@ -411,6 +415,7 @@ public class genericJMXAPI {
     private class Metric {
         String mbean_name;
         String attribute;
+        String key;
         String boundary_metric_name;
         double currentValue;
         double lastValue;
@@ -420,10 +425,11 @@ public class genericJMXAPI {
         MBeanServerConnection mbsc;
         String type; // as in int, long, double etc.
 
-        Metric(MBeanServerConnection mbsc, String mbean_name, String attribute,
+        Metric(MBeanServerConnection mbsc, String mbean_name, String attribute, String key,
                String boundary_metric_name, String metric_type) {
             this.mbean_name = mbean_name;
             this.attribute = attribute;
+            this.key = key;
             this.boundary_metric_name = boundary_metric_name;
             this.metric_type = metric_type;
             this.firstTime = true;
@@ -481,6 +487,7 @@ public class genericJMXAPI {
 
                                 if (type.equals("int") || type.equals("long")
                                         || type.equals("java.lang.Object")
+                                        || type.equals("javax.management.openmbean.CompositeData")
                                         || type.equals("double")
                                         || type.equals("float")) {
                                     log(attribute + " is type: " + type);
@@ -496,6 +503,16 @@ public class genericJMXAPI {
                         }
                     }
 
+                    
+                    /* This is example of getting composite data
+                     * 
+                     * CompositeDataSupport heapMemory=(CompositeDataSupport)mbeanServer.getAttribute(memoryName,"HeapMemoryUsage");
+  						long usedHeapMemory=(Long)heapMemory.get("used");
+  						long committedHeapMemory=(Long)heapMemory.get("committed");
+  						long maxHeapMemory=(Long)heapMemory.get("max");
+                     */
+                    
+                    
                     switch (type) {
                     case "int":
                         currentValue = (int) mbsc.getAttribute(
@@ -516,6 +533,10 @@ public class genericJMXAPI {
                     case "java.lang.Object":
                         currentValue = (double) mbsc.getAttribute(
                                            name.getObjectName(), attribute);
+                        break;
+                    case "javax.management.openmbean.CompositeData":
+                    	CompositeDataSupport cData=(CompositeDataSupport)mbsc.getAttribute(name.getObjectName(),attribute);
+                    	currentValue = (long) cData.get(key);
                         break;
                     default:
                         log("@@@@@ Unknown type: " + type

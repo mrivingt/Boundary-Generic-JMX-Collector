@@ -4,52 +4,69 @@
  "stdout" : "yes",
 
  "logfile" : "Name of log file",
- "logfile" : "genericJMXAPI.log"
+ "logfile" : "../genericJMXAPI.log",
 
- "auth_string" : "The Boundary login email and api key separated by a colon (:) email:api_key. This is used to authenticate to Boundary when creating metrics etc.",
- "auth_string":"<email:api_key>",
+ "auth_string" : "The Boundary login email and api key separated by a colon (:) email:api_key",
+ "auth_string":"mark.rivington@boundary.com:api.0fa9067322-2186",
 
  "host" : "The hostame or IP address of the JMX server",
  "host":"127.0.0.1"
 
  "port" : "The port number of the JMX server",
- "port":"7199",
+ "port":"7010",
 
  "user" : "The user name if you need to authenticate to the JMX server",
- "user":"<username>",
+ "user":"mark",
 
  "password" : "goes with the user name",
- "password":"<password>",
+ "password":"secret",
 
  "interval" : "The interval in seconds between polls",
  "interval" : "10",
 
- "metrics" : "An arrary of metrics defining the MBean, the MBean attribute, the metric type (standard, delta or percent) and all the Boundary metric definition required",
+ "metrics" : "An arrary of metrics defining the MBean, the MBean attribute, the key (for compositedata type), the metric type (standard, delta or percent) and all the Boundary metric definition required",
  "metrics":
   [
     {  
- 	"mbean":"org.apache.cassandra.internal:type=FlushWriter",
- 	"attribute" : "PendingTasks",
- 	"boundary_metric_name" : "CAS_FW_PT",
+ 	"mbean":"java.lang:type=Memory",
+ 	"attribute" : "HeapMemoryUsage",
+      "key" : "max",
+ 	"boundary_metric_name" : "MR_HEAP_MEMORY_MAX",
  	"metric_type" : "standard",
- 	"metric_displayName" : "Cassandra FlushWriter pending tasks",
- 	"metric_displayNameShort" : "Cassandra FW PT",
- 	"metric_description" : "Cassandra Flush Writer number of pending tasks",
+ 	"metric_displayName" : "Tomcat Heap Memory Usage Max",
+ 	"metric_displayNameShort" : "Tomcat Heap Max",
+ 	"metric_description" : "High water mark of Tomcat Heap Memory",
  	"metric_unit" : "number",
  	"metric_defaultAggregate" : "AVG",
  	"metric_defaultResolutionMS" : "10000"
     },
-    {  
-     "mbean":"org.apache.cassandra.internal:type=FlushWriter",
-	"attribute":"CompletedTasks",
-	"boundary_metric_name":"CAS_FW_CT",
-	"metric_type" : "standard",
-	"metric_displayName" : "Cassandra FlushWriter completed tasks",
-	"metric_displayNameShort" : "Cassandra FW CT",
-	"metric_description" : "Cassandra Flush Writer number of completed tasks",
-	"metric_unit" : "number",
-	"metric_defaultAggregate" : "AVG",
-	"metric_defaultResolutionMS" : "10000"
+{  
+ 	"mbean":"java.lang:type=Memory",
+ 	"attribute" : "HeapMemoryUsage",
+      "key" : "used",
+ 	"boundary_metric_name" : "MR_HEAP_MEMORY_USED_DELTA",
+ 	"metric_type" : "delta",
+ 	"metric_displayName" : "Tomcat Heap Memory Usage used (delta)",
+ 	"metric_displayNameShort" : "Tomcat Heap Used D",
+ 	"metric_description" : "Used Tomcat Heap Memory Delta",
+ 	"metric_unit" : "number",
+ 	"metric_defaultAggregate" : "AVG",
+ 	"metric_defaultResolutionMS" : "10000"
     }
+
+    {  
+ 	"mbean":"java.lang:type=Memory",
+ 	"attribute" : "HeapMemoryUsage",
+      "key" : "used",
+ 	"boundary_metric_name" : "MR_HEAP_MEMORY_USED",
+ 	"metric_type" : "standard",
+ 	"metric_displayName" : "Tomcat Heap Memory Usage used",
+ 	"metric_displayNameShort" : "Tomcat Heap Used",
+ 	"metric_description" : "Used Tomcat Heap Memory",
+ 	"metric_unit" : "number",
+ 	"metric_defaultAggregate" : "AVG",
+ 	"metric_defaultResolutionMS" : "10000"
+    }
+
   ]
 }
