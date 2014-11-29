@@ -347,7 +347,11 @@ public class genericJMXAPI {
 
         String url = endpoint + boundary_metric_name;
         log("url: " + url);
+        int retry = 0;
 
+  do {
+	    retry++;
+	    
         URL obj = new URL(url);
 
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -360,6 +364,7 @@ public class genericJMXAPI {
         con.setRequestProperty("Content-Type", "application/json");
         con.setRequestProperty("Connection", "keep-alive");
         con.setDoOutput(true);
+
 
         DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 
@@ -374,6 +379,7 @@ public class genericJMXAPI {
         log("Response Code : " + responseCode);
 
         wr.close();
+} while (responseCode == 502 && retry < 5);
 
         if (responseCode != 200) {
             log("Something went wrong creating the metric: " + responseCode);
