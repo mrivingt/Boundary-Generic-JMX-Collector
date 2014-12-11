@@ -1,10 +1,14 @@
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -367,7 +371,7 @@ public class genericJMXAPI {
 
 
         DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-
+ 
         urlParameters = metricDefinition.toString();
         log("urlParameters: " + urlParameters);
 
@@ -377,7 +381,21 @@ public class genericJMXAPI {
 
         responseCode = con.getResponseCode();
         log("Response Code : " + responseCode);
-
+        
+        // Read the error stream and log it if we did not get a 200
+        if (responseCode != 200 ) {
+            DataInputStream dis = new DataInputStream(con.getErrorStream());
+            BufferedReader br =  new BufferedReader(new InputStreamReader(dis, "UTF-8"));
+        	
+        
+        String s = "";
+               
+        while ((s = br.readLine()) != null) {
+            log(s);
+         }
+        dis.close();
+        }
+        
         wr.close();
 } while (responseCode == 502 && retry < 5);
 
