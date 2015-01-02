@@ -46,6 +46,7 @@ public class genericJMXAPI {
 
     static int logcount;
     static int Logwrapafter;
+    static int ConTimeOut;
     static String Logfile;
     static String Stdout;
 
@@ -97,6 +98,14 @@ public class genericJMXAPI {
             Logwrapafter = 1000;
         } else {
             Logwrapafter = Integer.parseInt(wrap);
+        }
+        
+        String httptimeout = (String) configuration.get("httptimeout");
+
+        if (httptimeout == null) {
+            ConTimeOut = 5000;
+        } else {
+            ConTimeOut = Integer.parseInt(httptimeout) * 1000;  // Input is specified in seconds
         }
 
         // Start parsing the input JSON
@@ -270,6 +279,7 @@ public class genericJMXAPI {
         con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
+        con.setConnectTimeout(ConTimeOut); //milliseconds
 
         DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 
@@ -368,6 +378,7 @@ public class genericJMXAPI {
         con.setRequestProperty("Content-Type", "application/json");
         con.setRequestProperty("Connection", "keep-alive");
         con.setDoOutput(true);
+        con.setConnectTimeout(ConTimeOut); //milliseconds
 
 
         DataOutputStream wr = new DataOutputStream(con.getOutputStream());
