@@ -1,9 +1,7 @@
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -88,6 +86,9 @@ public class genericJMXAPI {
         }
 
         inputFile.close();
+        
+        // Start parsing the input JSON
+        // There are many keys and a lot can go wrong with their definitions
 
         Logfile = (String) configuration.get("logfile"); // used in the log
         // method
@@ -95,7 +96,7 @@ public class genericJMXAPI {
         String wrap = (String) configuration.get("logwrapafter");
 
         if (wrap == null) {
-            Logwrapafter = 1000;
+            Logwrapafter = 100000;
         } else {
             Logwrapafter = Integer.parseInt(wrap);
         }
@@ -107,9 +108,6 @@ public class genericJMXAPI {
         } else {
             ConTimeOut = Integer.parseInt(httptimeout) * 1000;  // Input is specified in seconds
         }
-
-        // Start parsing the input JSON
-        // There are many keys and a lot can go wrong with their definitions
 
         String authString = (String) configuration.get("auth_string");
         if (authString == null) {
@@ -172,6 +170,16 @@ public class genericJMXAPI {
         if (interval == null) {
             interval = "5";
         }
+        
+        String batchValue = (String) configuration.get("batch");
+        if (batchValue == null) {
+            batchValue = "5";
+        }
+        
+        String definemetrics = (String) configuration.get("definemetrics");
+        if (definemetrics == null) {
+            definemetrics = "yes";
+        }
 
         String source = (String) configuration.get("source");
         if (source == null) {
@@ -205,48 +213,70 @@ public class genericJMXAPI {
             // Extract all the attributes and store them in the mbeans
             // collection after creating the metric in Boundary
             // This is a lot of processing that can fail for many reasons
-            defineMetric(config, cfg, mbsc, mbeans, endpoint, authStringEnc);
+            defineMetric(definemetrics, config, cfg, mbsc, mbeans, endpoint, authStringEnc);
         }
 
         // This is where we do the forever loop of the processing
 
-        String url = "https://premium-api.boundary.com/v1/measurements";
-
+        String url = "https://premium-api.boundary.com/v1/measurementsAsync";  // Async
+        int postCounter = 0;
+        
         while (true) { // Forever
             JSONArray metricsArray = new JSONArray();
-            long timethen = System.currentTimeMillis();
-            for (Object object : mbeans) {
-                Metric mbean = (Metric) object;
+        
+            
+            for (int batchCounter  = 0; batchCounter < Integer.valueOf(batchValue) ; batchCounter++) {
+                long timethen = System.currentTimeMillis();
+                long timeStamp = 0;
+	            for (Object object : mbeans) {
+	                Metric mbean = (Metric) object;
+	
+	                if (mbean.metric_type.equals("delta")) {
+	                    if (!mbean.setDeltaValue()) {
+	                        continue;
+	                    } // for delta metrics there is no value on the first
+	                    // request
+	                } else {
+	                    mbean.setCurrentValue();
+	                }
+	
+	                JSONArray metricPayload = new JSONArray();
+	                metricPayload.add(source);
+	           //   metricPayload.add("test123");
+	                metricPayload.add(mbean.boundary_metric_name);
+	                metricPayload.add(mbean.displayValue);
+	           //   metricPayload.add(String.valueOf(System.currentTimeMillis()));
+	                timeStamp = System.currentTimeMillis() / 1000 ;
+	                metricPayload.add(timeStamp);
+	                metricsArray.add(metricPayload);
+	            }
+	
+	         //   publishMetric(metricsArray, url, authStringEnc);
+	         //   long timenow = System.currentTimeMillis();
+	         //   long elapsed = timenow - timethen;
+	        //    log("Time to get all mbeans and publish them was: " + elapsed
+	        //        + " ms");
+	            if (batchCounter == Integer.valueOf(batchValue) - 1) {
+	            	postCounter++;
+	               	log("Post counter ======> " + postCounter);
+	            	publishMetric(metricsArray, url, authStringEnc);
+	            }
+	            long timenow = System.currentTimeMillis();
+	            long elapsed = timenow - timethen;
+	            
+	            long sleepTime = 1000 * Integer.valueOf(interval) - elapsed - 2;
+	            
+	            log("Now we sleep for " + sleepTime + " Ms");
+	
+	            if (sleepTime > 0) {
+	                Thread.sleep(sleepTime);
+	            }
+	            else {
+	            	log("That last post took too long. The sleep time is negative: " + sleepTime);
+	            }
 
-                if (mbean.metric_type.equals("delta")) {
-                    if (!mbean.setDeltaValue()) {
-                        continue;
-                    } // for delta metrics there is no value on the first
-                    // request
-                } else {
-                    mbean.setCurrentValue();
-                }
-
-                JSONArray metricPayload = new JSONArray();
-                metricPayload.add(source);
-                metricPayload.add(mbean.boundary_metric_name);
-                metricPayload.add(mbean.displayValue);
-                metricPayload.add(String.valueOf(System.currentTimeMillis()));
-                metricsArray.add(metricPayload);
-            }
-
-            publishMetric(metricsArray, url, authStringEnc);
-            long timenow = System.currentTimeMillis();
-            long elapsed = timenow - timethen;
-            log("Time to get all mbeans and publish them was: " + elapsed
-                + " ms");
-
-            long sleepTime = 1000 * Integer.valueOf(interval) - elapsed - 1;
-
-            if (sleepTime > 0) {
-                Thread.sleep(sleepTime);
-            }
-
+        }
+           
         }
 
     }
@@ -267,8 +297,11 @@ public class genericJMXAPI {
         log("url parameters: " + urlParameters);
 
         int responseCode = 0;
-
-        log("url: " + url);
+        int retry = 0;
+ do {
+	    retry++;
+ 
+        log("(" + retry + ") attempt to send to url: " + url);
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -281,17 +314,28 @@ public class genericJMXAPI {
         con.setDoOutput(true);
         con.setConnectTimeout(ConTimeOut); //milliseconds
 
+        try {
         DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-
+ 
         // Send request
         wr.writeBytes(urlParameters);
         wr.flush();
-
+ 
         responseCode = con.getResponseCode();
         log("Response Code : " + responseCode);
 
         wr.close();
-
+        }
+        catch(java.net.SocketTimeoutException e) {
+        	log("Connection timeout");
+        	//System.exit(32);
+        }
+        catch(java.net.ConnectException f) {
+          	log("Connection exception");
+        	//System.exit(32);
+        }
+ } while (retry < 6 && responseCode == 0);
+	 
         if (responseCode != 200) {
             log("Something went wrong publishing the metric value: "
                 + responseCode + "- skipping this one");
@@ -300,7 +344,7 @@ public class genericJMXAPI {
 
     }
 
-    private static void defineMetric(JSONObject config, genericJMXAPI cfg,
+    private static void defineMetric(String definemetrics, JSONObject config, genericJMXAPI cfg,
                                      MBeanServerConnection mbsc, ArrayList<Metric> mbeans,
                                      String endpoint, String authStringEnc) throws IOException {
 
@@ -335,7 +379,9 @@ public class genericJMXAPI {
             metric_type = "standard";
         }
 
-        metricDefinition.put("name", boundary_metric_name);
+        // We have to upper case the boundary metric name since they "fixed" the API
+        
+        metricDefinition.put("name", boundary_metric_name.toUpperCase());
         metricDefinition.put("description", metric_description);
         metricDefinition.put("displayName", metric_displayName);
         metricDefinition.put("displayNameShort", metric_displayNameShort);
@@ -359,10 +405,11 @@ public class genericJMXAPI {
         String urlParameters = null;
         int responseCode = 0;
 
-        String url = endpoint + boundary_metric_name;
+        // We have to upper case the boundary metric name since they "fixed" the API
+        String url = endpoint + boundary_metric_name.toUpperCase();
         log("url: " + url);
         int retry = 0;
-
+ if (definemetrics.toLowerCase().equals("yes")) {                           
   do {
 	    retry++;
 	    
@@ -414,7 +461,7 @@ public class genericJMXAPI {
             log("Something went wrong creating the metric: " + responseCode);
             System.exit(3);
         }
-
+    }
         // store the mbeans definitions away and store the MBean server
         // connection with them
         mbeans.add(cfg.new Metric(mbsc, mbean_name, attribute, key,
@@ -498,8 +545,13 @@ public class genericJMXAPI {
             InstanceNotFoundException, MBeanException, ReflectionException,
             IntrospectionException {
             ObjectName myMbeanName = new ObjectName(mbean_name);
+            
+            log("Getting value of MBean: " + myMbeanName);
 
-            Set<ObjectInstance> mbeans = mbsc.queryMBeans(myMbeanName, null); // This
+            Set<ObjectInstance> mbeans = mbsc.queryMBeans(myMbeanName, null);
+            log("Got value of MBean: " + myMbeanName);
+            
+            // This
             // should
             // only
             // return

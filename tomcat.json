@@ -4,16 +4,22 @@
  "stdout" : "yes",
 
  "logfile" : "Name of log file",
- "logfile" : "genericJMXAPI.log"
+ "logfile" : "genericJMXAPI.log",
+
+ "httptimeout" : "http timeout in seconds",
+ "httptimeout" : "60",
+
+ "batch" : "Number of sets of metrics to collect before sending to Boundary",
+ "batch" : "5",
 
  "auth_string" : "The Boundary login email and api key separated by a colon (:) email:api_key. This is used to authenticate to Boundary when creating metrics etc.",
- "auth_string":"email:token",
+ "auth_string":"mrivingt@yahoo.com:api.a771d82482-7696",
 
  "host" : "The hostame or IP address of the JMX server",
  "host":"127.0.0.1"
 
  "port" : "The port number of the JMX server",
- "port":"9991",
+ "port":"7010",
 
  "user" : "The user name if you need to authenticate to the JMX server",
  "user":"tomcat",
@@ -22,174 +28,177 @@
  "password":"tomcat",
 
  "interval" : "The interval in seconds between polls",
- "interval" : "10",
+ "interval" : "1",
+
+ "definemetrics" : "Defining metrics in Boundary can be really slow so if you know that they are already defined, set to no",
+ "definemetrics" : "no",
 
  "metrics" : "An arrary of metrics defining the MBean, the MBean attribute, the metric type (standard, delta or percent) and all the Boundary metric definition required",
  "metrics":
   [
 
   {
-    "mbean":"Catalina:type=GlobalRequestProcessor,name=\"http-bio-8080\"",
+    "mbean":"Catalina:type=GlobalRequestProcessor,name=\"http-apr-8080\"",
     "attribute" : "requestCount",
-    "boundary_metric_name" : "LF_Tomcat_RequestCount",
+    "boundary_metric_name" : "MZ_Tomcat_RequestCount",
     "metric_type" : "delta",
     "metric_displayName" : "Tomcat Request Count",
     "metric_displayNameShort" : "TomcatReqCount",
     "metric_description" : "Number of requests to Tomcat",
     "metric_unit" : "number",
     "metric_defaultAggregate" : "AVG",
-    "metric_defaultResolutionMS" : "10000"
+    "metric_defaultResolutionMS" : "1000"
  },
  {
-   "mbean":"Catalina:type=GlobalRequestProcessor,name=\"http-bio-8080\"",
+   "mbean":"Catalina:type=GlobalRequestProcessor,name=\"http-apr-8080\"",
    "attribute" : "errorCount",
-   "boundary_metric_name" : "LF_Tomcat_ErrorCount",
+   "boundary_metric_name" : "MZ_TOMCAT_ERRORCOUNT",
    "metric_type" : "delta",
    "metric_displayName" : "Tomcat Error Count",
    "metric_displayNameShort" : "TomcatErrorCount",
    "metric_description" : "Number of Tomcat request Errors",
    "metric_unit" : "number",
    "metric_defaultAggregate" : "AVG",
-   "metric_defaultResolutionMS" : "10000"
+   "metric_defaultResolutionMS" : "1000"
 },
 {
-  "mbean":"Catalina:type=GlobalRequestProcessor,name=\"http-bio-8080\"",
+  "mbean":"Catalina:type=GlobalRequestProcessor,name=\"http-apr-8080\"",
   "attribute" : "processingTime",
-  "boundary_metric_name" : "LF_Tomcat_Proc_Time",
+  "boundary_metric_name" : "MZ_TOMCAT_PROC_TIME",
   "metric_type" : "standard",
   "metric_displayName" : "Tomcat Request Processing Time",
   "metric_displayNameShort" : "TomcatProcTime",
   "metric_description" : "Average processing time of Tomcat requests",
   "metric_unit" : "number",
   "metric_defaultAggregate" : "AVG",
-  "metric_defaultResolutionMS" : "10000"
+  "metric_defaultResolutionMS" : "1000"
 },
 {
  "mbean":"java.lang:type=OperatingSystem",
   "attribute" : "ProcessCpuLoad",
-  "boundary_metric_name" : "LF_Tomcat_Process_Load",
+  "boundary_metric_name" : "MZ_TOMCAT_PROCESS_LOAD",
   "metric_type" : "standard",
   "metric_displayName" : "Tomcat CPU Process Load",
   "metric_displayNameShort" : "TomcatCPULoad",
   "metric_description" : "Current CPU Load of Tomcat Process",
   "metric_unit" : "number",
   "metric_defaultAggregate" : "AVG",
-  "metric_defaultResolutionMS" : "10000"
+  "metric_defaultResolutionMS" : "1000"
 },
 {
  "mbean":"java.lang:type=Memory",
   "attribute" : "HeapMemoryUsage",
   "key" : "used",
-  "boundary_metric_name" : "LF_Tomcat_HeapUsage",
+  "boundary_metric_name" : "MZ_TOMCAT_HEAPUSAGE",
   "metric_type" : "standard",
   "metric_displayName" : "Tomcat Heap Memory Usage",
   "metric_displayNameShort" : "TomcatHeapMemUse",
   "metric_description" : "Memory use by Tomcat Heap",
   "metric_unit" : "number",
   "metric_defaultAggregate" : "AVG",
-  "metric_defaultResolutionMS" : "10000"
+  "metric_defaultResolutionMS" : "1000"
 },
 {
  "mbean":"java.lang:type=Memory",
   "attribute" : "NonHeapMemoryUsage",
   "key" : "used",
-  "boundary_metric_name" : "LF_Tomcat_NonHeapUse",
+  "boundary_metric_name" : "MZ_TOMCAT_NONHEAPUSE",
   "metric_type" : "standard",
   "metric_displayName" : "Tomcat None Heap Memory Use",
   "metric_displayNameShort" : "TomcatNonHeapMem",
   "metric_description" : "None heap use of host memory by Tomcat",
   "metric_unit" : "number",
   "metric_defaultAggregate" : "AVG",
-  "metric_defaultResolutionMS" : "10000"
+  "metric_defaultResolutionMS" : "1000"
 },
 {
  "mbean":"java.lang:type=OperatingSystem",
   "attribute" : "FreePhysicalMemorySize",
-  "boundary_metric_name" : "LF_Tomcat_FreePhysicalMemory",
+  "boundary_metric_name" : "MZ_TOMCAT_FREE_PHYSICAL_MEMORY",
   "metric_type" : "standard",
   "metric_displayName" : "Tomcat Free Physical Memory",
   "metric_displayNameShort" : "TomcatFreePhysicalMemory",
   "metric_description" : "Remaining physical memory on Tomcat host",
   "metric_unit" : "number",
   "metric_defaultAggregate" : "AVG",
-  "metric_defaultResolutionMS" : "10000"
+  "metric_defaultResolutionMS" : "1000"
 },
 {
- "mbean":"java.lang:type=threading",
+ "mbean":"java.lang:type=Threading",
   "attribute" : "ThreadCount",
-  "boundary_metric_name" : "LF_Tomcat_Threadcount",
+  "boundary_metric_name" : "MZ_TOMCAT_THREADCOUNT",
   "metric_type" : "standard",
   "metric_displayName" : "Tomcat Thread Count",
   "metric_displayNameShort" : "TomcatThreadCount",
   "metric_description" : "Tomcat Active Thread Count",
   "metric_unit" : "number",
   "metric_defaultAggregate" : "AVG",
-  "metric_defaultResolutionMS" : "10000"
+  "metric_defaultResolutionMS" : "1000"
 },
 {
  "mbean":"java.lang:type=MemoryPool,name=CMS Old Gen",
   "attribute" : "Usage",
   "key" : "used",
-  "boundary_metric_name" : "LF_Tomcat_OldGenUse",
+  "boundary_metric_name" : "MZ_TOMCAT_OLDGENUSE",
   "metric_type" : "standard",
   "metric_displayName" : "Tomcat CMS Old Gen Usage",
   "metric_displayNameShort" : "TomcatOldGenUse",
   "metric_description" : "CMS Old Gen Use",
   "metric_unit" : "number",
   "metric_defaultAggregate" : "AVG",
-  "metric_defaultResolutionMS" : "10000"
+  "metric_defaultResolutionMS" : "1000"
 },
 {
  "mbean":"java.lang:type=MemoryPool,name=CMS Perm Gen",
   "attribute" : "Usage",
   "key" : "used",
-  "boundary_metric_name" : "LF_Tomcat_PermGenUse",
+  "boundary_metric_name" : "MZ_TOMCAT_PERMGENUSE",
   "metric_type" : "standard",
   "metric_displayName" : "Tomcat CMS Perm Gen Use",
   "metric_displayNameShort" : "TomcatPermGenUse",
   "metric_description" : "CMS Perm Gen Use",
   "metric_unit" : "number",
   "metric_defaultAggregate" : "AVG",
-  "metric_defaultResolutionMS" : "10000"
+  "metric_defaultResolutionMS" : "1000"
 },
 {
  "mbean":"java.lang:type=MemoryPool,name=Code Cache",
   "attribute" : "Usage",
   "key" : "used",
-  "boundary_metric_name" : "LF_Tomcat_CodeCacheUse",
+  "boundary_metric_name" : "MZ_TOMCAT_CODECACHEUSE",
   "metric_type" : "standard",
   "metric_displayName" : "Tomcat Code Cache Use",
   "metric_displayNameShort" : "TomcatCodeCacheUse",
   "metric_description" : "Tomcat Code Cache Used",
   "metric_unit" : "number",
   "metric_defaultAggregate" : "AVG",
-  "metric_defaultResolutionMS" : "10000"
+  "metric_defaultResolutionMS" : "1000"
 },
 {
- "mbean":"java.lang:type=MemoryPool,name=Par Eden Space",
+ "mbean":"java.lang:type=MemoryPool,name=PS Eden Space",
   "attribute" : "Usage",
   "key" : "used",
-  "boundary_metric_name" : "LF_Tomcat_EdenSpaceUse",
+  "boundary_metric_name" : "MZ_TOMCAT_EDENSPACEUSE",
   "metric_type" : "standard",
   "metric_displayName" : "Tomcat Par Eden Space Used",
   "metric_displayNameShort" : "TomcatEdenSpaceUse",
   "metric_description" : "Tomcat Par Eden Space Used",
   "metric_unit" : "number",
   "metric_defaultAggregate" : "AVG",
-  "metric_defaultResolutionMS" : "10000"
+  "metric_defaultResolutionMS" : "1000"
 },
 {
- "mbean":"java.lang:type=MemoryPool,name=Par Survivor Space",
+ "mbean":"java.lang:type=MemoryPool,name=PS Survivor Space",
   "attribute" : "Usage",
   "key" : "used",
-  "boundary_metric_name" : "LF_Tomcat_SurvivorSpace",
+  "boundary_metric_name" : "MZ_TOMCAT_SURVIVORSPACE",
   "metric_type" : "standard",
   "metric_displayName" : "Tomcat Par Survivo Space Used",
   "metric_displayNameShort" : "TomcatSurvSpaceUse",
   "metric_description" : "Tomcat Par Survivor Space Used",
   "metric_unit" : "number",
   "metric_defaultAggregate" : "AVG",
-  "metric_defaultResolutionMS" : "10000"
+  "metric_defaultResolutionMS" : "1000"
 },
   ]
 }
