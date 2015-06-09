@@ -13,7 +13,7 @@
  "batch" : "5",
 
  "auth_string" : "The Boundary login email and api key separated by a colon (:) email:api_key. This is used to authenticate to Boundary when creating metrics etc.",
- "auth_string":"mrivingt@yahoo.com:api.a771d82482-7696",
+ "auth_string":"[email_address]:[api_key]",
 
  "host" : "The hostame or IP address of the JMX server",
  "host":"127.0.0.1"
