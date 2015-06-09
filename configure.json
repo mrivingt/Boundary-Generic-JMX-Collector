@@ -6,6 +6,13 @@
  "logfile" : "Name of log file",
  "logfile" : "../genericJMXAPI.log",
 
+ "httptimeout" : "http timeout in seconds",
+ "httptimeout" : "60",
+
+ "batch" : "Number of sets of metrics to collect before sending to Boundary",
+ "batch" : "5",
+
+
  "auth_string" : "The Boundary login email and api key separated by a colon (:) email:api_key",
  
 
@@ -22,7 +29,7 @@
  "password":"secret",
 
  "interval" : "The interval in seconds between polls",
- "interval" : "10",
+ "interval" : "1",
 
  "metrics" : "An arrary of metrics defining the MBean, the MBean attribute, the key (for compositedata type), the metric type (standard, delta or percent) and all the Boundary metric definition required",
  "metrics":
